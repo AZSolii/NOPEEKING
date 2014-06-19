@@ -1,0 +1,11 @@
+list MateriaListMagic   = ["Restore"];
+list MateriaListCommand = ["Critical"];
+list MateriaListSupport = ["Quicken"];
+
+default
+{
+    state_entry()
+    {
+        
+    }
+}

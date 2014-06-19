@@ -1,0 +1,17 @@
+//Index is the name of the status.
+//Set is for status effects to make sure you can only have one active of each group. Set 0 is no set.
+//Priority is for CC/Disables, since you can only have one of each.
+list IndexStatus     = ["Poison", "Regen"];
+list SetStatus       = [1, 1];
+list IndexControl    = ["Bind", "Sleep", "Stop"];
+list PriorityControl = [0, 1, 2];
+list IndexDisable    = ["Paralyze", "Silence"];
+list PriorityDisable = [0, 0];
+
+default
+{
+    state_entry()
+    {
+        
+    }
+}
