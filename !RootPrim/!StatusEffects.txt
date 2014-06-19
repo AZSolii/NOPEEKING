@@ -1,12 +1,17 @@
 //Index is the name of the status.
 //Set is for status effects to make sure you can only have one active of each group. Set 0 is no set.
 //Priority is for CC/Disables, since you can only have one of each.
-list IndexStatus     = ["Poison", "Regen"];
-list SetStatus       = [1, 1];
-list IndexControl    = ["Bind", "Sleep", "Stop"];
-list PriorityControl = [0, 1, 2];
-list IndexDisable    = ["Paralyze", "Silence"];
-list PriorityDisable = [0, 0];
+list IndexStatus     = ["Addle", "Berserk", "Blind", "Blink", "Bravery",
+                        "Deprotect", "Deshell", "Faith", "Fear", "Flurry",
+						"Fog", "Haste", "Phase", "Protect", "Shell", 
+						"Slow", "Zombie", "Barspell", "Enspell", "Felspell"];
+//NOTE: Treat Bar/En/Fel as a single status effect. Note element with an alt value, saves us a lot of headache.
+list SetStatus       = [0, 0, 0, 3, 1,
+                        3, 4, 2, 1, 0, 
+						2, 5, 4, 3, 4,
+						5, 0, 6, 6, 6];
+list IndexControl    = ["Bind", "Confuse", "Paralyze", "Silence", "Sleep", "Stop"];
+list PriorityControl = [1, 2, 3, 3, 4, 5];
 
 default
 {
