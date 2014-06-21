@@ -1,7 +1,9 @@
 list output = ["00000", //Party ID
                "SUB",   //HP Mod Form
-               124,     //HP Modulation
+               124,     //HP Modulation Minimum
+			   306,     //HP Modulation Range
                "X",     //Damage Types
+               "N/A",   //MP Mod Form
                "N/A",   //MP Mod Form
                128,     //Potency
                64,      //Luck
