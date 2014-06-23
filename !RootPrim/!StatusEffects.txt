@@ -1,6 +1,8 @@
 //Index is the name of the status.
 //Set is for status effects to make sure you can only have one active of each group. Set 0 is no set.
 //Priority is for CC/Disables, since you can only have one of each.
+integer LINK_STATUS_AWAY_HUB = 200;
+integer LINK_STATUS_TO_HUB = 201;
 list IndexStatus     = ["Addle", "Berserk", "Blind", "Blink", "Bravery",
                         "Deprotect", "Deshell", "Faith", "Fear", "Flurry",
 						"Fog", "Haste", "Phase", "Protect", "Shell", 
