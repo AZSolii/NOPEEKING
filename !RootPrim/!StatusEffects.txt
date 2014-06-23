@@ -15,6 +15,14 @@ list SetStatus       = [0, 0, 0, 3, 1,
 list IndexControl    = ["Bind", "Confuse", "Paralyze", "Silence", "Sleep", "Stop"];
 list PriorityControl = [1, 2, 3, 3, 4, 5];
 
+//ORDER:
+//                      PHYSDEF, MAGDEF , PHYSPOW, MAGPOW ,
+//                      EVASION, ACCURAC, TIMFACT, CUREMOD,
+//                      CRITICAL
+list StatusTracker   = [NULL, 0, NULL, 0, NULL, 0, NULL 0,
+						NULL, 0, NULL, 0, NULL, 0, NULL 0,
+						NULL, 0]
+						
 default
 {
     state_entry()
