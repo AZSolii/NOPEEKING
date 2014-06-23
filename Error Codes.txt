@@ -1,2 +1,8 @@
 001	!PlayerStatistics
 ID given to the CalculateStat method was invalid.
+
+002	!PlayerStatistics
+ID given for HP modulation is invalid.
+
+003	!PlayerStatistics
+ID given for MP modulation is invalid.

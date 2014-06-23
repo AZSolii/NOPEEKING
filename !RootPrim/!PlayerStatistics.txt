@@ -1,5 +1,7 @@
 integer LINK_STATISTICS = 100;
 integer LINK_EFFECT = 101;
+integer LINK_STATUS_AWAY_HUB = 200;
+integer LINK_STATUS_TO_HUB = 201;
 integer DEBUG_TEXT_ON = TRUE;
 
 list RatingModifier   = ["F", "E", "D-","D", "D+","C-","C", "C+","B-","B", "B+","A-","A", "A+","S"];
@@ -23,6 +25,12 @@ list AttributeSubStorage = ["STR", 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
 integer CHP;
 integer CMP;
+string SE_PhysDef = "NULL";
+string SE_MagDef  = "NULL";
+string SE_Evasion = "NULL";
+string SE_Zombie  = "NULL";
+string MyParty = "00000";
+list HP_Status_Events = [];
 
 //The big list of link message channels!
 
@@ -116,6 +124,10 @@ integer GetAtt(string id){
     else if(id == "MMP" || id == "MP") return llList2Integer(Attributes, 15);
     return -255;
 }
+AddStatusEvent(string eventType){
+	if(llListFindList(HP_Status_Events, [eventType]) == -1)
+		HP_Status_Events += [eventType];
+}
 
 default
 {
@@ -148,7 +160,7 @@ default
                 integer NumEffects;
                 list StatusEffects;
                 
-                PartyID = llList2String(parse, index); //TODO: Check for party
+                PartyID = llList2String(parse, index);
                 index++;
                 HPModForm = llList2String(parse, index);
                 index++;
@@ -195,103 +207,160 @@ default
                     }
                 }
                 
-                //HP Modulation
-                list vsVit = ["0", "X", "G", "P", "Z"];
-                list vsVitNames = ["Physical", "Explosive", "Gravity", "Poison", "Disease", "Sonic"];
-                
-                list vsSpr = ["F", "I", "T", "L", "E", "W", "L", "D", "M"];
-                list vsSprNames = ["Fire", "Ice", "Thunder", "Air", "Earth", "Water", "Light", "Dark", "Magic"];
-                
-                if(HPModForm != "NULL"){
-                    integer HPFragMin = (integer)llCeil((float)HPModMin / (float)llStringLength(DamageTypes));
-                    integer HPFragRng = (integer)llCeil((float)HPModRange / (float)llStringLength(DamageTypes));
-                    
-                    integer CritChance = 5 + llRound((float)(Luck - GetAtt("LUK")) / 255.0) * 28;
-                    integer IsCrit = (llFrand(100) < CritChance);
-                    
-                    if(IsCrit) llOwnerSay("You suffered a critical hit!");
-                    integer i;
-                    for(i=0; i<llStringLength(DamageTypes); i++){
-                        integer isPhysical = llListFindList(vsVit, [llGetSubString(DamageTypes,i,i)]);
-                        integer isMagical  = llListFindList(vsSpr, [llGetSubString(DamageTypes,i,i)]);
-                        integer adjust;
-                        
-                        if(isPhysical){
-                            integer pow = Potency;
-                            if(IsCrit) pow -= GetAtt("VIT") / 2;
-                            else pow -= GetAtt("VIT");
-                            if(pow < 0) pow = 0;
-                            if(pow > 255) pow = 255;
-                            adjust = llRound(HPFragRng * (float)pow / 255.0);
-                        }
-                        else if(isMagical){
-                            integer pow = Potency;
-                            if(IsCrit) pow -= GetAtt("SPR") / 2;
-                            else pow -= GetAtt("SPR");
-                            if(pow < 0) pow = 0;
-                            if(pow > 255) pow = 255;
-                            
-                            adjust = llRound(HPFragRng * (float)pow / 255.0);
-                        }
-                        
-                        adjust += HPFragMin;
-                        
-                             if(HPModForm == "SUB") CHP -= adjust;
-                        else if(HPModForm == "ADD") CHP += HPFragRng;
-                        else if(HPModForm == "CUR%SUB") CHP -= (integer)llRound(CHP * (float)adjust/100.0);
-                        else if(HPModForm == "CUR%ADD") CHP -= (integer)llRound(CHP * (float)HPFragRng/100.0);
-                        else if(HPModForm == "MAX%SUB") CHP -= (integer)llRound(GetAtt("MHP") * (float)adjust/100.0);
-                        else if(HPModForm == "MAX%ADD") CHP -= (integer)llRound(GetAtt("MHP") * (float)HPFragRng/100.0);
-                        else if(HPModForm == "SET") CHP = adjust;
-                        
-                        if(HPModForm == "SUB" || HPModForm == "CUR%SUB" || HPModForm == "MAX%SUB")
-                            llOwnerSay("Took "+(string)adjust+" "+llList2String(vsVitNames+vsSprNames, llListFindList(vsVit+vsSpr, [llGetSubString(DamageTypes,i,i)]))+" damage.");
-                        else if(HPModForm == "ADD" || HPModForm == "CUR%ADD" || HPModForm == "MAX%ADD")
-                            llOwnerSay("Recovered "+(string)HPFragRng+" HP.");
-                        else if(HPModForm == "ADD" || HPModForm == "CUR%ADD" || HPModForm == "MAX%ADD")
-                            llOwnerSay(llList2String(vsVitNames+vsSprNames, llListFindList(vsVit+vsSpr, [llGetSubString(DamageTypes,i,i)]))+" reduced your HP to "+(string)HPFragRng+"!");
-                    }
+				integer doContinue = FALSE;
+				
+				//Party Check
+				if((PartyID == "00000") || llListFindList(Keywords, "NEUTRAL")) //Always hits everyone
+					doContinue = TRUE;
+				else if((PartyID == MyParty) && llListFindList(Keywords, "POSITIVE") != -1) //If is positive effect & my party, continue
+					doContinue = TRUE;
+				else if((PartyID != MyParty) && llListFindList(Keywords, "NEGATIVE") != -1) //If is negative effect & not my party, continue
+					doContinue = TRUE;
+				
+				if(doContinue){
+					//HP Modulation
+					list vsVit = ["0", "X", "G", "P", "Z"];
+					list vsVitNames = ["Physical", "Explosive", "Gravity", "Poison", "Disease", "Sonic"];
+					
+					list vsSpr = ["F", "I", "T", "L", "E", "W", "L", "D", "M"];
+					list vsSprNames = ["Fire", "Ice", "Thunder", "Air", "Earth", "Water", "Light", "Dark", "Magic"];
+					
+					HP_Status_Events = [llList2CSV(Keywords)];
+					
+					if(HPModForm != "NULL"){
+						integer HPFragMin = (integer)llCeil((float)HPModMin / (float)llStringLength(DamageTypes));
+						integer HPFragRng = (integer)llCeil((float)HPModRange / (float)llStringLength(DamageTypes));
+						
+						integer CritChance = 5 + llRound((float)(Luck - GetAtt("LUK")) / 255.0) * 28;
+						integer IsCrit = (llFrand(100) < CritChance);
+						
+						if(IsCrit) llOwnerSay("You suffered a critical hit!");
+						integer i;
+						for(i=0; i<llStringLength(DamageTypes); i++){
+							integer isPhysical = llListFindList(vsVit, [llGetSubString(DamageTypes,i,i)]);
+							integer isMagical  = llListFindList(vsSpr, [llGetSubString(DamageTypes,i,i)]);
+							integer adjust;
+							
+							if(isPhysical){
+								integer pow = Potency;
+								if(IsCrit) pow -= GetAtt("VIT") / 2;
+								else pow -= GetAtt("VIT");
+								if(pow < 0) pow = 0;
+								if(pow > 255) pow = 255;
+								
+								adjust = llRound(HPFragRng * (float)pow / 255.0);
+								adjust += HPFragMin;
+								
+								//Check Blink, Protect/Deprotect
+								if(SE_Evasion == "BLINK"){
+									adjust *= 0;
+									AddStatusEvent("EvasionEvent");
+								}
+								else if(SE_PhysDef == "PROTECT"){
+									adjust /= 2;
+									AddStatusEvent("PhysDefEvent");
+								}
+								else if(SE_PhysDef == "DEPROTECT"){
+									adjust = llRound((float)adjust * 1.3333);
+									AddStatusEvent("PhysDefEvent");
+								}
+							}
+							else if(isMagical){
+								integer pow = Potency;
+								if(IsCrit) pow -= GetAtt("SPR") / 2;
+								else pow -= GetAtt("SPR");
+								if(pow < 0) pow = 0;
+								if(pow > 255) pow = 255;
+								
+								adjust = llRound(HPFragRng * (float)pow / 255.0);
+								adjust += HPFragMin;
+								
+								//Check Phase, Shell/Deshell
+								if(SE_Evasion == "PHASE"){
+									adjust *= 0;
+									AddStatusEvent("EvasionEvent");
+								}
+								else if(SE_PhysDef == "SHELL"){
+									adjust /= 2;
+									AddStatusEvent("MagDefEvent");
+								}
+								else if(SE_PhysDef == "DESHELL"){
+									adjust = llRound((float)adjust * 1.3333);
+									AddStatusEvent("MagDefEvent");
+								}
+							}
+							
+								 if(HPModForm == "SUB") CHP -= adjust;
+							else if(HPModForm == "ADD") CHP += HPFragRng;
+							else if(HPModForm == "CUR%SUB") CHP -= (integer)llRound(CHP * (float)adjust/100.0);
+							else if(HPModForm == "CUR%ADD") CHP += (integer)llRound(CHP * (float)HPFragRng/100.0);
+							else if(HPModForm == "CUR%ABS"){
+								integer returnVal = (integer)llRound(CHP * (float)adjust/100.0);
+								CHP -= returnVal;
+								//TODO: Return adjustment value as ADD function to originator
+							}
+							else if(HPModForm == "MAX%SUB") CHP -= (integer)llRound(GetAtt("MHP") * (float)adjust/100.0);
+							else if(HPModForm == "MAX%ADD") CHP += (integer)llRound(GetAtt("MHP") * (float)HPFragRng/100.0);
+							else if(HPModForm == "ABS%ADD"){
+								CHP += (integer)llRound(GetAtt("MHP") * (float)HPFragRng/100.0);
+								//TODO: Return adjustment value as ADD function to originator
+							}
+							else if(HPModForm == "SET") CHP = adjust;
+							else llOwnerSay("ERROR 002: Invalid HP Modulation ID!");
+							
+							if(HPModForm == "SUB" || HPModForm == "CUR%SUB" || HPModForm == "MAX%SUB")
+								llOwnerSay("Took "+(string)adjust+" "+llList2String(vsVitNames+vsSprNames, llListFindList(vsVit+vsSpr, [llGetSubString(DamageTypes,i,i)]))+" damage.");
+							else if(HPModForm == "ADD" || HPModForm == "CUR%ADD" || HPModForm == "MAX%ADD")
+								llOwnerSay("Recovered "+(string)HPFragRng+" HP.");
+							else if(HPModForm == "ADD" || HPModForm == "CUR%ADD" || HPModForm == "MAX%ADD")
+								llOwnerSay(llList2String(vsVitNames+vsSprNames, llListFindList(vsVit+vsSpr, [llGetSubString(DamageTypes,i,i)]))+" reduced your HP to "+(string)HPFragRng+"!");
+						}
 
-					//MP Modulation
-					if(MPModForm != "NULL"){
-                    integer MPFragMin = (integer)llCeil((float)MPModMin / (float)llStringLength(DamageTypes));
-                    integer MPFragRng = (integer)llCeil((float)MPModRange / (float)llStringLength(DamageTypes));
-                    
-                    integer i;
-                    for(i=0; i<llStringLength(DamageTypes); i++){
-                        integer isPhysical = llListFindList(vsVit, [llGetSubString(DamageTypes,i,i)]);
-                        integer isMagical  = llListFindList(vsSpr, [llGetSubString(DamageTypes,i,i)]);
-                        integer adjust;
-                        
-                        if(isPhysical){
-                            integer pow = Potency;
-                            if(IsCrit) pow -= GetAtt("VIT") / 2;
-                            else pow -= GetAtt("VIT");
-                            if(pow < 0) pow = 0;
-                            if(pow > 255) pow = 255;
-                            adjust = llRound(MPFragRng * (float)pow / 255.0);
-                        }
-                        else if(isMagical){
-                            integer pow = Potency;
-                            if(IsCrit) pow -= GetAtt("SPR") / 2;
-                            else pow -= GetAtt("SPR");
-                            if(pow < 0) pow = 0;
-                            if(pow > 255) pow = 255;
-                            
-                            adjust = llRound(MPFragRng * (float)pow / 255.0);
-                        }
-                        
-                        adjust += MPFragMin;
-                        
-                             if(MPModForm == "SUB") CMP -= adjust;
-                        else if(MPModForm == "ADD") CMP += MPFragRng;
-                        else if(MPModForm == "CUR%SUB") CMP -= (integer)llRound(CMP * (float)adjust/100.0);
-                        else if(MPModForm == "CUR%ADD") CMP -= (integer)llRound(CMP * (float)MPFragRng/100.0);
-                        else if(MPModForm == "MAX%SUB") CMP -= (integer)llRound(GetAtt("MMP") * (float)adjust/100.0);
-                        else if(MPModForm == "MAX%ADD") CMP -= (integer)llRound(GetAtt("MMP") * (float)MPFragRng/100.0);
-                        else if(MPModForm == "SET") CMP = adjust;
-                    }
+						//MP Modulation
+						if(MPModForm != "NULL"){
+						integer MPFragMin = (integer)llCeil((float)MPModMin / (float)llStringLength(DamageTypes));
+						integer MPFragRng = (integer)llCeil((float)MPModRange / (float)llStringLength(DamageTypes));
+						
+						integer i;
+						for(i=0; i<llStringLength(DamageTypes); i++){
+							integer isPhysical = llListFindList(vsVit, [llGetSubString(DamageTypes,i,i)]);
+							integer isMagical  = llListFindList(vsSpr, [llGetSubString(DamageTypes,i,i)]);
+							integer adjust;
+							
+							if(isPhysical){
+								integer pow = Potency;
+								if(IsCrit) pow -= GetAtt("VIT") / 2;
+								else pow -= GetAtt("VIT");
+								if(pow < 0) pow = 0;
+								if(pow > 255) pow = 255;
+								adjust = llRound(MPFragRng * (float)pow / 255.0);
+							}
+							else if(isMagical){
+								integer pow = Potency;
+								if(IsCrit) pow -= GetAtt("SPR") / 2;
+								else pow -= GetAtt("SPR");
+								if(pow < 0) pow = 0;
+								if(pow > 255) pow = 255;
+								
+								adjust = llRound(MPFragRng * (float)pow / 255.0);
+							}
+							
+							adjust += MPFragMin;
+							
+								 if(MPModForm == "SUB") CMP -= adjust;
+							else if(MPModForm == "ADD") CMP += MPFragRng;
+							else if(MPModForm == "CUR%SUB") CMP -= (integer)llRound(CMP * (float)adjust/100.0);
+							else if(MPModForm == "CUR%ADD") CMP -= (integer)llRound(CMP * (float)MPFragRng/100.0);
+							else if(MPModForm == "MAX%SUB") CMP -= (integer)llRound(GetAtt("MMP") * (float)adjust/100.0);
+							else if(MPModForm == "MAX%ADD") CMP -= (integer)llRound(GetAtt("MMP") * (float)MPFragRng/100.0);
+							else if(MPModForm == "SET") CMP = adjust;
+							else llOwnerSay("ERROR 003: Invalid MP Modulation ID!");
+							}
+						}
+					}
                 }
+				else if(DEBUG_TEXT_ON)
+					llOwnerSay("DEBUG: Skipped due to party check.");
             }
         }
         debugText();
