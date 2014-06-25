@@ -6,3 +6,6 @@ ID given for HP modulation is invalid.
 
 003	!PlayerStatistics
 ID given for MP modulation is invalid.
+
+004	!MateriaSlot
+Passed delay cannot be <= 0.

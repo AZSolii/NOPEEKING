@@ -1,11 +1,51 @@
-list MateriaListMagic   = ["Restore"];
-list MateriaListCommand = ["Critical"];
-list MateriaListSupport = ["Quicken"];
+integer LINK_MATERIA_SLOT = 300;
+integer LINK_MATERIA_SUPPORT_TOGGLE = 302;
 
+list MateriaListSummon = 
+	["Ifrit"];
+list MateriaListCommand = 
+	["Critical"];
+list MateriaListMagic   = 
+	["Restore"];
+list MateriaListSupport = 
+	["Quicken"];
+list MateriaListIndependent = 
+	["Strength+"];
+
+//Name, Level, IsSupportGroupActive
+list Slots = ["NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0,
+			  "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0];
+			  
+list LinkGroup = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5];
+
+export()
+{
+    llMessageLinked(LINK_SET, LINK_MATERIA_SLOT, llList2CSV(Slots), NULL_KEY);
+}
 default
 {
     state_entry()
     {
         
     }
+	link_message(integer linknum, integer num, string str, key id)
+	{
+		if(num == LINK_MATERIA_SUPPORT_TOGGLE){
+			if(str == "SUPPORT TOGGLE"){
+				integer group = (integer)llCeil((float)id / 2.0);
+				integer slot = 6 * (group - 1);
+				integer val = llList2Integer(Slots, slot+2);
+				
+				if(val == TRUE)
+					val = FALSE;
+				else
+					val = TRUE;
+				
+				Slots = llListReplaceList(Slots, val, slot+2, slot+2);
+				Slots = llListReplaceList(Slots, val, slot+5, slot+5);
+				
+				export();
+			}
+		}
+	}
 }
