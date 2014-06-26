@@ -16,7 +16,7 @@ list MateriaListIndependent =
 list Slots = ["NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0,
 			  "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0];
 			  
-list LinkGroup = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5];
+list LinkGroup = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4];
 
 export()
 {
@@ -31,20 +31,27 @@ default
 	link_message(integer linknum, integer num, string str, key id)
 	{
 		if(num == LINK_MATERIA_SUPPORT_TOGGLE){
-			if(str == "SUPPORT TOGGLE"){
-				integer group = (integer)llCeil((float)id / 2.0);
-				integer slot = 6 * (group - 1);
-				integer val = llList2Integer(Slots, slot+2);
+			integer group = (integer)llFloor((float)str / 2.0);
+			integer slot = 6 * group;
+			integer val = llList2Integer(Slots, slot+2);
+			
+			if(val == TRUE)
+				val = FALSE;
+			else
+				val = TRUE;
+			
+			Slots = llListReplaceList(Slots, val, slot+2, slot+2);
+			Slots = llListReplaceList(Slots, val, slot+5, slot+5);
+			
+			export();
+		}
+		else if(num == LINK_MATERIA_USE){
+			list temp = llParseString2List(str, ["/"], []);
+			string type = llList2String(temp,0);
+			string name = llList2String(temp,1);
+			integer lv  = llList2Integer(temp,2);
+			if(id == "COMMAND"){
 				
-				if(val == TRUE)
-					val = FALSE;
-				else
-					val = TRUE;
-				
-				Slots = llListReplaceList(Slots, val, slot+2, slot+2);
-				Slots = llListReplaceList(Slots, val, slot+5, slot+5);
-				
-				export();
 			}
 		}
 	}
