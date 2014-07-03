@@ -1,0 +1,16 @@
+integer LINK_SCANNER_REQUEST = 400;
+
+default
+{
+	link_message(integer linknum, integer num, string str, key id)
+	{
+		if(num == LINK_SCANNER_REQUEST){
+			//Parse string into a list. Arguments we need:
+			//Whether it's a ray or a sensor
+			//Whether we're scanning for objects, agents, or both
+			//Range of scan
+			//Output string on successful scan
+			//Everything else that's flooded back into the system on a successful scan. Paired as Int (channel), String (message)
+		}
+	}
+}

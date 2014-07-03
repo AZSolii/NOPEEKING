@@ -1,5 +1,8 @@
 integer LINK_MATERIA_SLOT = 300;
 integer LINK_MATERIA_SUPPORT_TOGGLE = 302;
+integer LINK_SCANNER_REQUEST = 400;
+
+float Reach = 2.0;
 
 list MateriaListSummon = 
 	["Ifrit"];
@@ -50,8 +53,12 @@ default
 			string type = llList2String(temp,0);
 			string name = llList2String(temp,1);
 			integer lv  = llList2Integer(temp,2);
-			if(id == "COMMAND"){
-				
+			if(type == "COMMAND"){
+				if(name == "Doublecut"){
+					list out = ["RAY", "AGENT", Reach, "DEBUG: Update this later.", 0, "NULL"];
+					llMessageLinked(LINK_SET, LINK_SCANNER_REQUEST, llDumpList2String(out, ";"), NULL_KEY);
+					llMessageLinked(LINK_SET, LINK_SCANNER_REQUEST, llDumpList2String(out, ";"), NULL_KEY);
+				}
 			}
 		}
 	}
