@@ -1,6 +1,8 @@
+integer LINK_STATUS_AWAY_HUB = 200;
 integer LINK_MATERIA_SLOT = 300;
 integer LINK_MATERIA_SUPPORT_TOGGLE = 302;
 integer LINK_SCANNER_REQUEST = 400;
+list Attributes;
 
 float Reach = 2.0;
 
@@ -30,39 +32,59 @@ generateScannerRequest(string ScanType, string TargetType, float ScanRange,
 	llMessageLinked(LINK_SET, LINK_SCANNER_REQUEST, 
 		[ScanType, TargetType, ScanRange, OutputChannel, OutputExternal, OutputInternal], NULL_KEY);
 }
+
+integer GetAtt(string id){
+         if(id == "STR") return llList2Integer(Attributes, 1);
+    else if(id == "DEX") return llList2Integer(Attributes, 3);
+    else if(id == "VIT") return llList2Integer(Attributes, 5);
+    else if(id == "MAG") return llList2Integer(Attributes, 7);
+    else if(id == "SPR") return llList2Integer(Attributes, 9);
+    else if(id == "LUK") return llList2Integer(Attributes, 11);
+    else if(id == "MHP" || id == "HP") return llList2Integer(Attributes, 13);
+    else if(id == "MMP" || id == "MP") return llList2Integer(Attributes, 15);
+    return -255;
+}
+
 default
 {
     state_entry()
     {
         
     }
-	link_message(integer linknum, integer num, string str, key id)
-	{
-		if(num == LINK_MATERIA_SUPPORT_TOGGLE){
-			integer group = (integer)llFloor((float)str / 2.0);
-			integer slot = 6 * group;
-			integer val = llList2Integer(Slots, slot+2);
+	if(num == LINK_STATUS AWAY HUB){
+	
+	Attributes = llCSV2List(str);
+	
+	}
+	else {
+		link_message(integer linknum, integer num, string str, key id)
+		{
+			if(num == LINK_MATERIA_SUPPORT_TOGGLE){
+				integer group = (integer)llFloor((float)str / 2.0);
+				integer slot = 6 * group;
+				integer val = llList2Integer(Slots, slot+2);
 			
-			if(val == TRUE)
-				val = FALSE;
-			else
-				val = TRUE;
+				if(val == TRUE)
+					val = FALSE;
+				else
+					val = TRUE;
 			
-			Slots = llListReplaceList(Slots, val, slot+2, slot+2);
-			Slots = llListReplaceList(Slots, val, slot+5, slot+5);
+				Slots = llListReplaceList(Slots, val, slot+2, slot+2);
+				Slots = llListReplaceList(Slots, val, slot+5, slot+5);
 			
-			export();
-		}
-		else if(num == LINK_MATERIA_USE){
-			list temp = llParseString2List(str, ["/"], []);
-			string type = llList2String(temp,0);
-			string name = llList2String(temp,1);
-			integer lv  = llList2Integer(temp,2);
-			if(type == "COMMAND"){
-				if(name == "Doublecut"){
-					list out = ["RAY", "AGENT", Reach, "DEBUG: Update this later.", 0, "NULL"];
-					llMessageLinked(LINK_SET, LINK_SCANNER_REQUEST, llDumpList2String(out, ";"), NULL_KEY);
-					llMessageLinked(LINK_SET, LINK_SCANNER_REQUEST, llDumpList2String(out, ";"), NULL_KEY);
+				export();
+			}
+			else if(num == LINK_MATERIA_USE){
+				list temp = llParseString2List(str, ["/"], []);
+				string type = llList2String(temp,0);
+				string name = llList2String(temp,1);
+				integer lv  = llList2Integer(temp,2);
+				if(type == "COMMAND"){
+					if(name == "Doublecut"){
+						list out = ["SUB", "150", "40", "0" "NULL", (getAtt("STR") + getAtt("DEX") + getAtt("DEX")) / 3 ,getAtt("LUK"), 1, "DoublecutEffect",  0];
+						generateScannerRequest("RAY", "AGENT", Reach, -9823645, llDumpList2String(out, ";"),"");
+						generateScannerRequest("RAY", "AGENT", Reach, -9823645, llDumpList2String(out, ";"),"");
+					}
 				}
 			}
 		}
