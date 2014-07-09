@@ -11,6 +11,27 @@ default
 			//Range of scan
 			//Output string on successful scan
 			//Everything else that's flooded back into the system on a successful scan. Paired as Int (channel), String (message)
+			list parse = llParseString2List(str, [";"], []);
+			
+			string RequestType = llList2String(parse, 0);
+				//RAY, SENSOR
+			string CollisionType = llList2String(parse, 1);
+				//AGENT, OBJECT, BOTH
+			float Range = llList2Integer(parse, 2);
+				//Just a float value, ya'll.
+			string OutputExternal = llList2String(parse, 3);
+			integer OutputChannel = llList2Integer(parse, 4);
+			string OutputInternal = llList2String(parse, 5);
+				//Both of these trigger on a successful scan.
+			
+			if(RequestType == "RAY")
+			{
+				//do raycasting stuff
+			}
+			else if(RequestType == "SENSOR")
+			{
+				//do sensor stuff
+			}
 		}
 	}
 }

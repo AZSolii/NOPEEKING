@@ -25,6 +25,11 @@ export()
 {
     llMessageLinked(LINK_SET, LINK_MATERIA_SLOT, llList2CSV(Slots), NULL_KEY);
 }
+generateScannerRequest(string ScanType, string TargetType, float ScanRange, 
+		integer OutputChannel, string OutputExternal, string OutputInternal){
+	llMessageLinked(LINK_SET, LINK_SCANNER_REQUEST, 
+		[ScanType, TargetType, ScanRange, OutputChannel, OutputExternal, OutputInternal], NULL_KEY);
+}
 default
 {
     state_entry()
