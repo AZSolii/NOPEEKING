@@ -1,4 +1,8 @@
 integer LINK_SCANNER_REQUEST = 400;
+integer CHANNEL_MAIN;
+
+integer SavedOutputChannel;
+string SavedOutputExternal;
 
 default
 {
@@ -20,18 +24,63 @@ default
 			float Range = llList2Integer(parse, 2);
 				//Just a float value, ya'll.
 			string OutputExternal = llList2String(parse, 3);
-			integer OutputChannel = llList2Integer(parse, 4);
+			integer ExternalChannel = llList2Integer(parse, 4);
 			string OutputInternal = llList2String(parse, 5);
 				//Both of these trigger on a successful scan.
 			
 			if(RequestType == "RAY")
 			{
-				//do raycasting stuff
+				vector start = llGetPos();
+				vector end = start + <0.0, 25.0, 0.0>;
+				
+				if ( filter > 8 )
+					filter = 0;
+					
+				list results = llCastRay(start, end, [RC_MAX_HITS, 1] );
+				
+				while (hitNum < llList2Integer(results, -1))
+				{
+					key uuid = llList2Key(results, 2*hitNum);
+					if (uuid != NULL_KEY){
+						if(OutputChannel != 0){
+							if(OutputExternal == ""){
+								//TODO: Adjust OutputExternal to save key information, add party information.
+								llShout(OutputChannel, OutputExternal);
+								//TODO: Add OutputInternal stuff
+							}
+							else llOwnerSay("ERROR 006");
+						}
+						else llOwnerSay("ERROR 005");
+					}
+		 
+					++hitNum;
+				}
+		 
+				++filter;
 			}
-			else if(RequestType == "SENSOR")
+			else if(RequestType == "CONE")
 			{
-				//do sensor stuff
+				SavedOutputChannel = OutputChannel;
+				SavedOutputExternal = OutputExternal;
+				llSensor("", NULL_KEY, Range, PI * 0.333);
+			}
+			else if(RequestType == "RADIAL")
+			{
+				SavedOutputChannel = OutputChannel;
+				SavedOutputExternal = OutputExternal;
+				llSensor("", NULL_KEY, Range, PI);
 			}
 		}
+	}
+	sensor(integer total)
+	{
+		list victimKeys;
+		integer i;
+		for(i=0; i<total; i++){
+			llShout(SavedOutputChannel, SavedOutputExternal)
+			//TODO: Adjust SavedOutputExternal for party, add key to beginning.
+		}
+		SavedOutputChannel = 0;
+		SavedOutputExternal = "";
 	}
 }

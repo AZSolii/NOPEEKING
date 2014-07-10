@@ -9,3 +9,9 @@ ID given for MP modulation is invalid.
 
 004	!MateriaSlot
 Passed delay cannot be <= 0.
+
+005	!Scanner
+ChannelExport cannot be 0!
+
+006	!Scanner
+OutputExport cannot be empty!
