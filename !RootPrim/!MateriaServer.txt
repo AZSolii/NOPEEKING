@@ -23,6 +23,58 @@ list Slots = ["NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, FALSE, "NULL", 0, F
 			  
 list LinkGroup = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4];
 
+integer mapToHP(float x)
+{
+	//float value maps directly to percents. EG: 0.0 = 0%, 1.0 = 100%
+	float baseline = 5000;
+	float overflow = 5000;
+	float clamp = 9999;
+	
+	float num = -1;
+	if(x < 0.0){
+		llOwnerSay("ERROR 007: Value passed to mapToHP cannot be negative.");
+		return -1;
+	}
+	else if(x <= 1.0) {
+		num = baseline * num;
+	}
+	else {
+		num = baseline;
+		while(x > 1.0) {
+			float y = x % 1.0;
+			num += (overflow * y);
+			x -= 1.0;
+		}
+	}
+	if(num > clamp) num = clamp;
+	return llRound(num);
+}
+integer mapToMP(float x)
+{
+	//float value maps directly to percents. EG: 0.0 = 0%, 1.0 = 100%
+	float baseline = 100;
+	float overflow = 100;
+	float clamp = 999;
+	
+	float num = -1;
+	if(x < 0.0){
+		llOwnerSay("ERROR 008: Value passed to mapToMP cannot be negative.");
+		return -1;
+	}
+	else if(x <= 1.0) {
+		num = baseline * num;
+	}
+	else {
+		num = baseline;
+		while(x > 1.0) {
+			float y = x % 1.0;
+			num += (overflow * y);
+			x -= 1.0;
+		}
+	}
+	if(num > clamp) num = clamp;
+	return llRound(num);
+}
 export()
 {
     llMessageLinked(LINK_SET, LINK_MATERIA_SLOT, llList2CSV(Slots), NULL_KEY);
