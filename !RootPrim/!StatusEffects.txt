@@ -18,11 +18,15 @@ list PriorityControl = [1, 2, 3, 3, 4, 5];
 //ORDER:
 //                      PHYSDEF, MAGDEF , PHYSPOW, MAGPOW ,
 //                      EVASION, ACCURAC, TIMFACT, CUREMOD,
-//                      CRITICA
+//                      CRITICA, HPOTIME
 list StatusTrackerS  = ["NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                         "NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
-                        "NULL", 0];
-                        
+                        "NULL", 0, "NULL", 0];
+list StatusTrackerD  = [];
+
+export(){
+	llMessageLinked(LINK_SET, LINK_STATUS_AWAY_HUB, llList2CSV(StatusTrackerS+StatusTrackerD), NULL_KEY);
+}
 default
 {
     state_entry()

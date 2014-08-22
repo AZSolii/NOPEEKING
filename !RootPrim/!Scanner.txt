@@ -31,7 +31,8 @@ default
 			if(RequestType == "RAY")
 			{
 				vector start = llGetPos();
-				vector end = start + <0.0, 25.0, 0.0>;
+				vector aim = llRot2Fwd(llGetRot()) * Range;
+				vector end = start + aim;
 				
 				if ( filter > 8 )
 					filter = 0;
@@ -45,6 +46,7 @@ default
 						if(OutputChannel != 0){
 							if(OutputExternal == ""){
 								//TODO: Adjust OutputExternal to save key information, add party information.
+								llOwnerSay("DEBUG: ["+(string)Range+"m] Detected "+llKey2Name(uuid)+" <<"+(string)uuid+">>");
 								llShout(OutputChannel, OutputExternal);
 								//TODO: Add OutputInternal stuff
 							}
@@ -52,6 +54,7 @@ default
 						}
 						else llOwnerSay("ERROR 005");
 					}
+					else llOwnerSay("DEBUG: ["+(string)Range+"m] No valid target detected.");
 		 
 					++hitNum;
 				}

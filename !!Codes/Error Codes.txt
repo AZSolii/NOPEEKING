@@ -11,7 +11,16 @@ ID given for MP modulation is invalid.
 Passed delay cannot be <= 0.
 
 005	!Scanner
-ChannelExport cannot be 0!
+ChannelExport cannot be 0.
 
 006	!Scanner
-OutputExport cannot be empty!
+OutputExport cannot be empty.
+
+007	!MateriaServer
+Value passed to mapToHP cannot be negative.
+
+008	!MateriaServer
+Value passed to mapToMP cannot be negative.
+
+009	!PlayerStatistics
+String passed to GetStackStatus is invalid. Returning default value.

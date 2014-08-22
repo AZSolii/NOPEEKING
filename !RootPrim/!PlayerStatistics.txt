@@ -22,13 +22,13 @@ list AttributeSubStorage = ["STR", 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             "LUK", 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             "MHP", 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             "MMP", 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
+							
+list StatusTracker = ["NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
+                      "NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
+                      "NULL", 0, "NULL", 0];
+							
 integer CHP;
 integer CMP;
-string SE_PhysDef = "NULL";
-string SE_MagDef  = "NULL";
-string SE_Evasion = "NULL";
-string SE_Zombie  = "NULL";
 string MyParty = "00000";
 list HP_Status_Events = [];
 
@@ -123,6 +123,20 @@ integer GetAtt(string id){
     else if(id == "MHP" || id == "HP") return llList2Integer(Attributes, 13);
     else if(id == "MMP" || id == "MP") return llList2Integer(Attributes, 15);
     return -255;
+}
+integer GetStackStatus(string flag){
+         if(id == "PHYSDEF") return llList2Integer(StatusTracker, 1);
+    else if(id == "MAGDEF")  return llList2Integer(StatusTracker, 3);
+    else if(id == "PHYSPOW") return llList2Integer(StatusTracker, 5);
+    else if(id == "MAGPOW")  return llList2Integer(StatusTracker, 7);
+    else if(id == "EVASION") return llList2Integer(StatusTracker, 9);
+    else if(id == "ACCURAC") return llList2Integer(StatusTracker, 11);
+    else if(id == "TIMFACT") return llList2Integer(StatusTracker, 13);
+    else if(id == "CRITICA") return llList2Integer(StatusTracker, 13);
+    else if(id == "CUREMOD") return llList2Integer(StatusTracker, 15);
+    else if(id == "HPOTIME") return llList2Integer(StatusTracker, 17);
+	else llOwnerSay("ERROR 009");
+    return 0;
 }
 AddStatusEvent(string eventType){
     if(llListFindList(HP_Status_Events, [eventType]) == -1)
