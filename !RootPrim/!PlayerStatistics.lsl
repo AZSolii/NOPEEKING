@@ -26,7 +26,7 @@ list AttributeSubStorage = ["STR", 0, 0, 0, 0, 0, 0, 0, 0, 0,
 list StatusTracker = ["NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                       "NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                       "NULL", 0, "NULL", 0];
-							
+					  
 integer CHP;
 integer CMP;
 string MyParty = "00000";

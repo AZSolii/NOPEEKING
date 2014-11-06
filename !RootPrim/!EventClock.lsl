@@ -1,3 +1,5 @@
+integer LINK_STATISTICS = 100;
+integer LINK_EFFECT = 101;
 integer LINK_TIMER_REQUEST = 500;
 integer LINK_TIMER_PULSE = 501;
 integer LINK_TIMER_KILL = 502;
@@ -22,6 +24,9 @@ list Events = ["REGEN", 0, 0,  //Stacks, SPR
 			   "INFMP", 0,     //Ticks
 					];
 
+list Attributes = ["STR", 0, "DEX", 0, "VIT", 0, "MAG", 0, "SPR", 0, "LUK", 0,
+                   "MHP", 0, "MMP", 0];
+					
 CheckEvents(){
 	integer noEvent = TRUE;
 	
@@ -67,12 +72,21 @@ default
 			else if(arg01 == "INFHP") llListReplaceList(EventStatus,[arg02],35);
 			else if(arg01 == "INFMP") llListReplaceList(EventStatus,[arg02],37);
 		}
+		if(num == LINK_STATISTICS){
+			Attributes = llCSV2List(str);
+		}
 	}
 	timer(){
+		//Regen
 		DecrementStack(1);
+		//Poison
 		DecrementStack(4);
+		//Bleed
 		DecrementStack(7);
+		//Degeneration
+		llMessageLinked();
 		DecrementStack(10);
+		//Barelement
 		DecrementStack(12);
 		DecrementStack(15);
 		DecrementStack(18);
