@@ -1,8 +1,11 @@
 integer LINK_SCANNER_REQUEST = 400;
+integer LINK_SCANNER_INTERNAL_FEEDBACK = 401;
 integer CHANNEL_MAIN;
 
 integer SavedOutputChannel;
 string SavedOutputExternal;
+
+integer filter;
 
 default
 {
@@ -24,7 +27,7 @@ default
 			float Range = llList2Integer(parse, 2);
 				//Just a float value, ya'll.
 			string OutputExternal = llList2String(parse, 3);
-			integer ExternalChannel = llList2Integer(parse, 4);
+			integer OutputChannel = llList2Integer(parse, 4);
 			string OutputInternal = llList2String(parse, 5);
 				//Both of these trigger on a successful scan.
 			
@@ -48,7 +51,7 @@ default
 								//TODO: Adjust OutputExternal to save key information, add party information.
 								llOwnerSay("DEBUG: ["+(string)Range+"m] Detected "+llKey2Name(uuid)+" <<"+(string)uuid+">>");
 								llShout(OutputChannel, OutputExternal);
-								//TODO: Add OutputInternal stuff
+								llMessageLinked(LINK_SET, LINK_SCANNER_INTERNAL_FEEDBACK, OutputInternal, uuid)
 							}
 							else llOwnerSay("ERROR 006");
 						}
@@ -80,7 +83,7 @@ default
 		list victimKeys;
 		integer i;
 		for(i=0; i<total; i++){
-			llShout(SavedOutputChannel, SavedOutputExternal)
+			llShout(SavedOutputChannel, SavedOutputExternal);
 			//TODO: Adjust SavedOutputExternal for party, add key to beginning.
 		}
 		SavedOutputChannel = 0;
