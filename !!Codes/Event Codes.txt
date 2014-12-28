@@ -1,0 +1,26 @@
+ATTACK_USED
+	Player used a normal attack
+
+COMMAND_USED
+	Player used a command materia
+
+MAGIC_USED
+	Player cast a spell
+
+ITEM_USED
+	Player used an item
+
+DAMAGE_TAKEN_PHYSICAL
+	Player has taken physical damage from non-materia
+
+DAMAGE_TAKEN_MAGICAL
+	Player has taken magic damage from non-materia
+
+DAMAGE_TAKEN_MATERIA_PHYSICAL
+	Player has taken physical damage from a materia ability
+
+DAMAGE_TAKEN_MATERIA_MAGICAL
+	Player has taken magic damage from a materia ability
+
+HEAL_RECEIVED
+	Player has been healed
