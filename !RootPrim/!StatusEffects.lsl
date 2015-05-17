@@ -32,32 +32,31 @@ export(){
 setStackStatus(string statusID, integer statusNum){
     
     integer target;
-    if(statusID == "Protect") target = 0;
-    else if(statusID == "Deprotect") target = 0;
-    else if(statusID == "Shell") target = 2;
-    else if(statusID == "Deshell") target = 2;
-    else if(statusID == "Bravery") target = 4;
-    else if(statusID == "Fear") target = 4;
-    else if(statusID == "Faith") target = 6;
-    else if(statusID == "Fog") target = 6;
-    else if(statusID == "Blink") target = 8;
-    else if(statusID == "Phase") target = 8;
-    else if(statusID == "Blind") target = 10;
-    else if(statusID == "Addle") target = 10;
-    else if(statusID == "Haste") target = 12;
-    else if(statusID == "Slow") target = 12;
-    else if(statusID == "Zombie") target = 14;
-    else if(statusID == "Berserk") target = 16;
-    else if(statusID == "Regen") target = 18;
-    else if(statusID == "Poison") target = 18;
-    else if(statusID == "Degen") target = 18;
+    if(statusID == "PROTECT") target = 0;
+    else if(statusID == "DEPROTECT") target = 0;
+    else if(statusID == "SHELL") target = 2;
+    else if(statusID == "DESHELL") target = 2;
+    else if(statusID == "BRAVERY") target = 4;
+    else if(statusID == "FEAR") target = 4;
+    else if(statusID == "FAITH") target = 6;
+    else if(statusID == "FOG") target = 6;
+    else if(statusID == "BLINK") target = 8;
+    else if(statusID == "PHASE") target = 8;
+    else if(statusID == "BLIND") target = 10;
+    else if(statusID == "ADDLE") target = 10;
+    else if(statusID == "HASTE") target = 12;
+    else if(statusID == "SLOW") target = 12;
+    else if(statusID == "ZOMBIE") target = 14;
+    else if(statusID == "BERSERK") target = 16;
+    else if(statusID == "REGEN") target = 18;
+    else if(statusID == "POISON") target = 18;
+    else if(statusID == "DEGEN") target = 18;
+    else llOwnerSay("ERROR 010");
     
     if(statusNum != 0)
         StatusTrackerS = llListReplaceList(StatusTrackerS, [statusID, statusNum], target, target+1);
     else
         StatusTrackerS = llListReplaceList(StatusTrackerS, ["NULL", 0], target, target+1);
-    
-    llOwnerSay(llList2CSV(StatusTrackerS));
 }
 debugText(){
     llOwnerSay("debugText go");
@@ -84,25 +83,34 @@ decrementStack(integer i, string filter){
         
         if(stacks == 0) status = "NULL";
         
-        llListReplaceList(StatusTrackerS, [status, stacks], i, i+1);
+        StatusTrackerS = llListReplaceList(StatusTrackerS, [status, stacks], i, i+1);
     }
+    export();
 }
 default
 {
     state_entry()
     {
-        llOwnerSay("====BEGIN====");
-        llSetText("",<0,0,0>,0);
-        setStackStatus("Bravery",4);
-        setStackStatus("Protect",3);
-        setStackStatus("Fog",6);
-        setStackStatus("Blink",9);
-        debugText();
+        //llOwnerSay("====BEGIN====");
+        //llSetText("",<0,0,0>,0);
+        //setStackStatus("Bravery",4);
+        //setStackStatus("Protect",3);
+        //setStackStatus("Fog",6);
+        //setStackStatus("Blink",9);
+        //debugText();
     }
     //Status;stacksorduration;
     link_message(integer linknum, integer num, string str, key id){
         if(num == LINK_STATUS_TO_HUB){
-            
+            integer i=0;
+            list parse = llCSV2List(str);
+            while(i < llGetListLength(parse)){
+                setStackStatus(llList2String(parse, i), llList2Integer(parse, i+1));
+                i+=2;
+                
+                //i += 1 + llList2Integer(parse, i); //skip alt values for now
+            }
+            export();
         }
         if(num == LINK_EVENT){
 //          00PHYSDEF, 02MAGDEF , 04PHYSPOW, 06MAGPOW ,
@@ -123,19 +131,15 @@ default
                 decrementStack(10, "Addle");
                 decrementStack(12, "");
             }
-            if(str == "DAMAGE_TAKEN_PHYSICAL"){
+            if(str == "EFFECT_TYPE_NORMAL" && id == "NEGATIVE"){
                 if(llFrand(100) < 40)
                     decrementStack(0, "");
             }
-            if(str == "DAMAGE_TAKEN_MAGICAL"){
-                if(llFrand(100) < 40)
-                    decrementStack(2, "");
-            }
-            if(str == "DAMAGE_TAKEN_MATERIA_PHYSICAL"){
+            if(str == "EFFECT_TYPE_COMMAND" && id == "NEGATIVE"){
                 decrementStack(0, "");
                 decrementStack(8, "Blink");
             }
-            if(str == "DAMAGE_TAKEN_MATERIA_MAGICAL"){
+            if(str == "EFFECT_TYPE_MAGIC" && id == "NEGATIVE"){
                 decrementStack(2, "");
                 decrementStack(8, "Phase");
             }

@@ -2,6 +2,7 @@ integer LINK_STATISTICS = 100;
 integer LINK_EFFECT = 101;
 integer LINK_STATUS_AWAY_HUB = 200;
 integer LINK_STATUS_TO_HUB = 201;
+integer LINK_EVENT = 600;
 integer DEBUG_TEXT_ON = TRUE;
 
 list RatingModifier   = ["F", "E", "D-","D", "D+","C-","C", "C+","B-","B", "B+","A-","A", "A+","S"];
@@ -12,7 +13,7 @@ list RatingAdjust     = [14,  26,  36,  46,  55,  63,  71,  78,  85,  91,  97,  
 //Starred items are adjustments to a letter grade. Unstarred change the base score.
 
 list Attributes = ["STR", 0, "DEX", 0, "VIT", 0, "MAG", 0, "SPR", 0, "LUK", 0,
-                   "MHP", 0, "MMP", 0];
+                   "MHP", 0, "MMP", 0, "CHP", 0, "CMP", 0];
 
 list AttributeSubStorage = ["STR", 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             "DEX", 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -22,11 +23,11 @@ list AttributeSubStorage = ["STR", 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             "LUK", 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             "MHP", 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             "MMP", 0, 0, 0, 0, 0, 0, 0, 0, 0];
-							
+                            
 list StatusTracker = ["NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                       "NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                       "NULL", 0, "NULL", 0];
-					  
+                      
 integer CHP;
 integer CMP;
 string MyParty = "00000";
@@ -109,7 +110,14 @@ debugText()
         }
         
         output += "HP:"+(string)CHP+"/"+llList2String(Attributes, 13)+"   ";
-        output += "MP:"+(string)CMP+"/"+llList2String(Attributes, 15)+"   ";
+        output += "MP:"+(string)CMP+"/"+llList2String(Attributes, 15)+"\n";
+        output += "S:";
+        
+        for(i=0;i<llGetListLength(StatusTracker);i+=2){
+            if(llList2String(StatusTracker,i) != "NULL"){
+                output += "<"+llList2String(StatusTracker,i) + " ×"+llList2String(StatusTracker,i+1)+">";
+            }
+        }
         llSetText(output,<1,1,1>,1);
     }
 }
@@ -124,7 +132,7 @@ integer GetAtt(string id){
     else if(id == "MMP" || id == "MP") return llList2Integer(Attributes, 15);
     return -255;
 }
-integer GetStackStatus(string flag){
+integer GetStackStatus(string id){
          if(id == "PHYSDEF") return llList2Integer(StatusTracker, 1);
     else if(id == "MAGDEF")  return llList2Integer(StatusTracker, 3);
     else if(id == "PHYSPOW") return llList2Integer(StatusTracker, 5);
@@ -135,7 +143,7 @@ integer GetStackStatus(string flag){
     else if(id == "CRITICA") return llList2Integer(StatusTracker, 13);
     else if(id == "CUREMOD") return llList2Integer(StatusTracker, 15);
     else if(id == "HPOTIME") return llList2Integer(StatusTracker, 17);
-	else llOwnerSay("ERROR 009");
+    else llOwnerSay("ERROR 009");
     return 0;
 }
 AddStatusEvent(string eventType){
@@ -152,6 +160,9 @@ default
     }
     link_message(integer sender, integer linknum, string str, key id)
     {
+        if(linknum == LINK_STATUS_AWAY_HUB){
+            StatusTracker = llCSV2List(str);
+        }
         if(linknum == LINK_EFFECT)
         {
             list parse = llParseString2List(str, [";"], []);
@@ -210,13 +221,15 @@ default
                 NumEffects = llList2Integer(parse, index);
                 index++;
                 for(i=0; i<NumEffects; i++){
-                    StatusEffects += [llList2String(parse, index)];
+                    StatusEffects += [llList2String(parse, index)]; //ID
+                    index++;
+                    StatusEffects += [llList2String(parse, index)]; //Stacks/duration
                     index++;
                     integer NumAltValues = llList2Integer(parse, index);
                     index++;
                     integer j;
                     for(j=0; j<NumAltValues; j++){
-                        StatusEffects += [llList2Integer(parse, index)];
+                        StatusEffects += [llList2String(parse, index)];
                         index++;
                     }
                 }
@@ -232,12 +245,21 @@ default
                     doContinue = TRUE;
                 
                 if(doContinue){
+                    //Status Export
+                    llMessageLinked(LINK_SET, LINK_STATUS_TO_HUB, llList2CSV(StatusEffects), NULL_KEY);
+                    
+                    //Event Export
+                    llMessageLinked(LINK_SET, LINK_EVENT, "EFFECT_TYPE_"+llList2String(Keywords,0), llList2Key(Keywords,1));
+                    
                     //HP Modulation
-                    list vsVit = ["0", "X", "G", "P", "Z"];
-                    list vsVitNames = ["Physical", "Explosive", "Gravity", "Poison", "Disease", "Sonic"];
+                    list vsVit = ["0", "G", "P", "Z", "S"];
+                    list vsVitNames = ["Physical", "Gravity", "Poison", "Disease", "Sonic"];
                     
                     list vsSpr = ["F", "I", "T", "L", "E", "W", "L", "D", "M"];
                     list vsSprNames = ["Fire", "Ice", "Thunder", "Air", "Earth", "Water", "Light", "Dark", "Magic"];
+                    
+                    list vsLuk = ["X"];
+                    list vsLukNames = ["Explosive", "NULL_DMG_TYPE"];
                     
                     HP_Status_Events = [llList2CSV(Keywords)];
                     
@@ -253,9 +275,10 @@ default
                         for(i=0; i<llStringLength(DamageTypes); i++){
                             integer isPhysical = llListFindList(vsVit, [llGetSubString(DamageTypes,i,i)]);
                             integer isMagical  = llListFindList(vsSpr, [llGetSubString(DamageTypes,i,i)]);
+                            integer isLucky    = llListFindList(vsLuk, [llGetSubString(DamageTypes,i,i)]);
                             integer adjust;
                             
-                            if(isPhysical){
+                            if(isPhysical > -1){
                                 integer pow = Potency;
                                 if(IsCrit) pow -= GetAtt("VIT") / 2;
                                 else pow -= GetAtt("VIT");
@@ -266,20 +289,20 @@ default
                                 adjust += HPFragMin;
                                 
                                 //Check Blink, Protect/Deprotect
-                                if(SE_Evasion == "BLINK"){
+                                if(llList2String(StatusTracker,8) == "BLINK"){
                                     adjust *= 0;
                                     AddStatusEvent("EvasionEvent");
                                 }
-                                else if(SE_PhysDef == "PROTECT"){
+                                else if(llList2String(StatusTracker,0) == "PROTECT"){
                                     adjust /= 2;
                                     AddStatusEvent("PhysDefEvent");
                                 }
-                                else if(SE_PhysDef == "DEPROTECT"){
+                                else if(llList2String(StatusTracker,0) == "DEPROTECT"){
                                     adjust = llRound((float)adjust * 1.3333);
                                     AddStatusEvent("PhysDefEvent");
                                 }
                             }
-                            else if(isMagical){
+                            else if(isMagical > -1){
                                 integer pow = Potency;
                                 if(IsCrit) pow -= GetAtt("SPR") / 2;
                                 else pow -= GetAtt("SPR");
@@ -290,19 +313,30 @@ default
                                 adjust += HPFragMin;
                                 
                                 //Check Phase, Shell/Deshell
-                                if(SE_Evasion == "PHASE"){
+                                if(llList2String(StatusTracker,8) == "PHASE"){
                                     adjust *= 0;
                                     AddStatusEvent("EvasionEvent");
                                 }
-                                else if(SE_PhysDef == "SHELL"){
+                                else if(llList2String(StatusTracker,2) == "SHELL"){
                                     adjust /= 2;
                                     AddStatusEvent("MagDefEvent");
                                 }
-                                else if(SE_PhysDef == "DESHELL"){
+                                else if(llList2String(StatusTracker,2) == "DESHELL"){
                                     adjust = llRound((float)adjust * 1.3333);
                                     AddStatusEvent("MagDefEvent");
                                 }
                             }
+                            else if(isLucky > -1){
+                                integer pow = Potency;
+                                if(IsCrit) pow -= GetAtt("LUK") / 2;
+                                else pow -= GetAtt("LUK");
+                                if(pow < 0) pow = 0;
+                                if(pow > 255) pow = 255;
+                                
+                                adjust = llRound(HPFragRng * (float)pow / 255.0);
+                                adjust += HPFragMin;
+                            }
+                            else llOwnerSay("ERROR 011");
                             
                                  if(HPModForm == "SUB") CHP -= adjust;
                             else if(HPModForm == "ADD") CHP += HPFragRng;
@@ -323,7 +357,7 @@ default
                             else llOwnerSay("ERROR 002: Invalid HP Modulation ID!");
                             
                             if(HPModForm == "SUB" || HPModForm == "CUR%SUB" || HPModForm == "MAX%SUB")
-                                llOwnerSay("Took "+(string)adjust+" "+llList2String(vsVitNames+vsSprNames, llListFindList(vsVit+vsSpr, [llGetSubString(DamageTypes,i,i)]))+" damage.");
+                                llOwnerSay("Took "+(string)adjust+" "+llList2String(vsVitNames+vsSprNames+vsLukNames, llListFindList(vsVit+vsSpr+vsLuk, [llGetSubString(DamageTypes,i,i)]))+" damage.");
                             else if(HPModForm == "ADD" || HPModForm == "CUR%ADD" || HPModForm == "MAX%ADD")
                                 llOwnerSay("Recovered "+(string)HPFragRng+" HP.");
                             else if(HPModForm == "ADD" || HPModForm == "CUR%ADD" || HPModForm == "MAX%ADD")

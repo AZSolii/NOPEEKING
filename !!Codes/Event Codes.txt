@@ -10,17 +10,23 @@ MAGIC_USED
 ITEM_USED
 	Player used an item
 
-DAMAGE_TAKEN_PHYSICAL
-	Player has taken physical damage from non-materia
+EFFECT_TYPE_NORMAL
+	Player has been hit by a normal attack
 
-DAMAGE_TAKEN_MAGICAL
-	Player has taken magic damage from non-materia
+EFFECT_TYPE_MAGIC
+	Player has been hit by a spell
 
-DAMAGE_TAKEN_MATERIA_PHYSICAL
-	Player has taken physical damage from a materia ability
+EFFECT_TYPE_COMMAND
+	Player has been hit by a command materia
 
-DAMAGE_TAKEN_MATERIA_MAGICAL
-	Player has taken magic damage from a materia ability
+EFFECT_TYPE_ITEM
+	Player has been hit by an item
+
+EFFECT_TYPE_SUMMON
+	Player has been hit by a summon effect
+
+EFFECT_TYPE_LIMIT
+	Player has been hit by a limit break
 
 HEAL_RECEIVED
 	Player has been healed

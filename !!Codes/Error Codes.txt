@@ -24,3 +24,9 @@ Value passed to mapToMP cannot be negative.
 
 009	!PlayerStatistics
 String passed to GetStackStatus is invalid. Returning default value.
+
+010	!StatusEffects
+String passed to SetStackStatus is invalid.
+
+011	!PlayerStatistics
+Invalid damage type received.

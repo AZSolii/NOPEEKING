@@ -4,7 +4,7 @@ list output = ["00000",    //Party ID
 			   306,        //HP Modulation Range
                "X",        //Damage Types
                "N/A",      //MP Mod Form
-               "N/A",      //MP Mod Form
+               "N/A",      //MP Mod Amount
                128,        //Potency
                64,         //Luck
                "NULL",     //VFX
