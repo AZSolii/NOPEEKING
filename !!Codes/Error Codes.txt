@@ -30,3 +30,9 @@ String passed to SetStackStatus is invalid.
 
 011	!PlayerStatistics
 Invalid damage type received.
+
+012	!Listener
+Invalid command input. Command does not exist.
+
+013	!Listener
+Invalid command input. Correct syntax is \n/135 bind [slot] [c, e] [w, a, s, d]
