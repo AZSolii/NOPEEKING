@@ -46,6 +46,7 @@ setStackStatus(string statusID, integer statusNum){
     else if(statusID == "ADDLE") target = 10;
     else if(statusID == "HASTE") target = 12;
     else if(statusID == "SLOW") target = 12;
+    else if(statusID == "FLURRY") target = 12;
     else if(statusID == "ZOMBIE") target = 14;
     else if(statusID == "BERSERK") target = 16;
     else if(statusID == "REGEN") target = 18;
