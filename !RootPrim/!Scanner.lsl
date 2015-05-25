@@ -1,6 +1,5 @@
 integer LINK_SCANNER_REQUEST = 400;
 integer LINK_SCANNER_INTERNAL_FEEDBACK = 401;
-integer CHANNEL_MAIN;
 
 integer SavedOutputChannel;
 string SavedOutputExternal;
@@ -26,7 +25,7 @@ default
                 //AGENT, OBJECT, BOTH
             float Range = llList2Integer(parse, 2);
                 //Just a float value, ya'll.
-            string OutputExternal = llList2String(parse, 3);
+            string OutputExternal = llDumpList2String(llCSV2List(llList2String(parse, 3)), ";");
             integer OutputChannel = llList2Integer(parse, 4);
             string OutputInternal = llList2String(parse, 5);
                 //Both of these trigger on a successful scan.
@@ -68,9 +67,10 @@ default
             }
             else if(RequestType == "CONE")
             {
+                llSay(0,"Cone request received. Range="+(string)Range+"  Output="+OutputExternal);
                 SavedOutputChannel = OutputChannel;
                 SavedOutputExternal = OutputExternal;
-                llSensor("", NULL_KEY,AGENT,Range, PI * 0.333);
+                llSensor("", NULL_KEY,AGENT,Range*14, PI * 0.5);
             }
             else if(RequestType == "RADIAL")
             {
@@ -82,13 +82,19 @@ default
     }
     sensor(integer total)
     {
-        list victimKeys;
+        llSay(0,"DEBUG: total="+(string)total);
         integer i;
         for(i=0; i<total; i++){
-            llShout(SavedOutputChannel, SavedOutputExternal);
+            string victim = (string)llDetectedKey(i);
+            llSay(0, "DEBUG: victim="+victim);
+            llShout(SavedOutputChannel, victim+";"+SavedOutputExternal);
+            //llSay(0, "DEBUG: outputChannel = "+(string)SavedOutputChannel+" external=\""+llList2String(victimKeys,i)+";"+SavedOutputExternal+"\"");
             //TODO: Adjust SavedOutputExternal for party, add key to beginning.
         }
         SavedOutputChannel = 0;
         SavedOutputExternal = "";
+    }
+    no_sensor(){
+        llSay(0, "DEBUG: no victim found");
     }
 }

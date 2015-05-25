@@ -8,10 +8,10 @@ float distRanged  = 36.0;
 float distMelee   = 3.0;
 float delayNormal = 1.4;
 float delayFlurry = 0.9;
-integer dmgMinMelee = 100;
-integer dmgMinRanged = 400;
-integer dmgSpreadMelee = 100;
-integer dmgSpreadRanged = 400;
+integer dmgMinMelee = 75;
+integer dmgMinRanged = 50;
+integer dmgSpreadMelee = 225;
+integer dmgSpreadRanged = 200;
 float dmgMult = 1.0;
 
 list Attributes = ["STR", 0, "DEX", 0, "VIT", 0, "MAG", 0, "SPR", 0, "LUK", 0,

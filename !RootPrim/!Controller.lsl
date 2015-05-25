@@ -1,19 +1,26 @@
 integer LINK_STATUS_AWAY_HUB = 200;
 integer LINK_STATUS_TO_HUB = 201;
+integer LINK_MATERIA_USE = 303;
 integer LINK_SCANNER_REQUEST = 400;
 integer LINK_SCANNER_INTERNAL_FEEDBACK = 401;
 integer LINK_COMMAND_INPUT = 601;
+integer LINK_INPUT = 602;
 
 list hotkeys = ["CW", -1, "CA", -1, "CS", -1, "CD", -1,
                 "EW", -1, "EA", -1, "ES", -1, "ED", -1];
+key owner;
 
 default
 {
     state_entry(){
-        llRequestPermissions(llGetOwner(), PERMISSION_TAKE_CONTROLS);
+        owner = llGetOwner();
+        llRequestPermissions(owner, PERMISSION_TAKE_CONTROLS);
     }
     on_rez(integer param){
-        llRequestPermissions(llGetOwner(), PERMISSION_TAKE_CONTROLS);
+        if(llGetOwner() != owner)
+            llResetScript();
+        else
+            llRequestPermissions(owner, PERMISSION_TAKE_CONTROLS);
     }
     run_time_permissions(integer perm){
         if(PERMISSION_TAKE_CONTROLS & perm){
@@ -29,8 +36,18 @@ default
         integer end = ~level & edge;
         integer held = level & ~edge;
         
-        if((held & CONTROL_DOWN && start & CONTROL_FWD) || (start & CONTROL_DOWN && held & CONTROL_FWD))
+        if(start & CONTROL_FWD || start & CONTROL_LEFT || start & CONTROL_BACK || start & CONTROL_RIGHT){
+            if(held & CONTROL_LBUTTON || held & CONTROL_ML_LBUTTON){
+                llMessageLinked(LINK_SET, LINK_INPUT, "EVENT_MELEE", NULL_KEY);
+            }
+        }
+        else if(start & CONTROL_LBUTTON || start & CONTROL_ML_LBUTTON){
+            llMessageLinked(LINK_SET, LINK_INPUT, "EVENT_RANGED", NULL_KEY);
+        }
+        if((held & CONTROL_DOWN && start & CONTROL_FWD) || (start & CONTROL_DOWN && held & CONTROL_FWD)){
             llSay(0, "DEBUG: CW event, triggering slot "+llList2String(hotkeys, 1));
+            llMessageLinked(LINK_SET, LINK_MATERIA_USE, llList2String(hotkeys, 1), id);
+        }
         if((held & CONTROL_DOWN && start & CONTROL_LEFT) || (start & CONTROL_DOWN && held & CONTROL_LEFT))
             llSay(0, "DEBUG: CA event, triggering slot "+llList2String(hotkeys, 3));
         if((held & CONTROL_DOWN && start & CONTROL_BACK) || (start & CONTROL_DOWN && held & CONTROL_BACK))
@@ -48,6 +65,8 @@ default
     }
     link_message(integer origin, integer linknum, string str, key id){
         if(linknum == LINK_COMMAND_INPUT){
+            //TODO: Check to see if slot is already bound; reset old slot to -1 if so
+            //TODO: Feedback on correct command input
             list parse = llCSV2List(str);
             if(llList2String(parse,0) == "BIND"){
                 integer arg1 = llList2Integer(parse, 1);

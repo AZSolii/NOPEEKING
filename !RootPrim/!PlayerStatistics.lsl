@@ -4,6 +4,7 @@ integer LINK_STATUS_AWAY_HUB = 200;
 integer LINK_STATUS_TO_HUB = 201;
 integer LINK_EVENT = 600;
 integer DEBUG_TEXT_ON = TRUE;
+key COMMON_KEY = "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
 list RatingModifier   = ["F", "E", "D-","D", "D+","C-","C", "C+","B-","B", "B+","A-","A", "A+","S"];
 list RatingAdjust     = [14,  26,  36,  46,  55,  63,  71,  78,  85,  91,  97,  103, 109, 115, 120];
@@ -158,6 +159,10 @@ default
         calculateAllStats();
         debugText();
     }
+    on_rez(integer param)
+    {
+        export();
+    }
     link_message(integer sender, integer linknum, string str, key id)
     {
         if(linknum == LINK_STATUS_AWAY_HUB){
@@ -166,7 +171,8 @@ default
         if(linknum == LINK_EFFECT)
         {
             list parse = llParseString2List(str, [";"], []);
-            if(llList2Key(parse, 0) == llGetOwner())
+            key filter = llList2Key(parse, 0);
+            if(filter == llGetOwner() || filter == COMMON_KEY)
             {
                 integer index = 1;
                 string PartyID;
@@ -235,7 +241,7 @@ default
                 }
                 
                 integer doContinue = FALSE;
-                
+                llSay(0,"DEBUG: PartyID=\""+PartyID+"\"");
                 //Party Check
                 if(PartyID == "00000" || llListFindList(Keywords, ["NEUTRAL"]) != -1) //Always hits everyone
                     doContinue = TRUE;
@@ -246,7 +252,8 @@ default
                 
                 if(doContinue){
                     //Status Export
-                    llMessageLinked(LINK_SET, LINK_STATUS_TO_HUB, llList2CSV(StatusEffects), NULL_KEY);
+                    if(NumEffects > 0)
+                        llMessageLinked(LINK_SET, LINK_STATUS_TO_HUB, llList2CSV(StatusEffects), NULL_KEY);
                     
                     //Event Export
                     llMessageLinked(LINK_SET, LINK_EVENT, "EFFECT_TYPE_"+llList2String(Keywords,0), llList2Key(Keywords,1));

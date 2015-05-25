@@ -23,16 +23,15 @@ default
             llMessageLinked(LINK_SET, LINK_EFFECT, message, NULL_KEY);
         }
         if(channel == CHANNEL_INPUT_COMMAND && id == llGetOwner()){
-            list parse = llParseString2List(message, [" "], [""]);
-            string cmd = llToUpper(llList2String(parse, 0));
+            list parse = llParseString2List(llToUpper(message), [" "], [""]);
+            string cmd = llList2String(parse, 0);
             
-            if(llToLower(llList2String(parse, 0)) == "BIND"){
+            if(cmd == "BIND"){
                 integer arg1 = llList2Integer(parse, 1);
                 string arg2 = llToUpper(llList2String(parse, 2));
                 string arg3 = llToUpper(llList2String(parse, 3));
                 if(arg2 == "C" || arg2 == "E"){
-                    if(arg1 <= 10 && arg1 > -1){
-                        if(arg1 == 10) arg1 = 0;
+                    if(arg1 <= 10 && arg1 > 0){
                         if(arg3 == "W" || arg3 == "A" || arg3 == "S" || arg3 == "D"){
                             llMessageLinked(LINK_THIS, LINK_COMMAND_INPUT, cmd+", "+(string)arg1+", "+arg2+arg3, NULL_KEY);
                         }
