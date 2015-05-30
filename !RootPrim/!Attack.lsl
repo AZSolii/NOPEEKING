@@ -1,8 +1,10 @@
 integer LINK_STATISTICS = 100;
+integer LINK_PARTY = 102;
 integer LINK_STATUS_AWAY_HUB = 200;
 integer LINK_SCANNER_REQUEST = 400;
 integer LINK_INPUT = 602;
 integer attackDelay = FALSE;
+integer PartyChecksum = 0;
 
 float distRanged  = 36.0;
 float distMelee   = 3.0;
@@ -20,7 +22,7 @@ list StatusTracker = ["NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                       "NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                       "NULL", 0, "NULL", 0];
 
-string formatAttack(string party, string hpMod, integer hpMin, integer hpRange, string damageType, 
+string formatAttack(integer party, string hpMod, integer hpMin, integer hpRange, string damageType, 
     string mpMod, integer mpChange, integer potency, integer luck, string vfx,
     integer numKeywords, list keywords, integer numEffects, list effects){
     list dump = [party, hpMod, hpMin, hpRange, damageType, mpMod, mpChange, 
@@ -70,10 +72,13 @@ default
         if(linknum == LINK_STATUS_AWAY_HUB){
             StatusTracker = llCSV2List(str);
         }
+        if(linknum == LINK_PARTY){
+            PartyChecksum = (integer)str;
+        }
         if(linknum == LINK_INPUT){
             if(str == "EVENT_MELEE" && !attackDelay){
                 string output = formatAttack(
-                    "00000", //fix later
+                    PartyChecksum,
                     "SUB", llRound(dmgMinMelee * dmgMult), llRound(dmgSpreadMelee * dmgMult), "0", //fix damage type later 
                     "NULL", 0, GetAtt("STR"), GetAtt("LUK"), "NULL", //change if elemental
                     2, ["NORMAL", "NEGATIVE"], 
@@ -88,7 +93,7 @@ default
             }
             if(str == "EVENT_RANGED" && !attackDelay){
                 string output = formatAttack(
-                    "00000", //fix later
+                    PartyChecksum,
                     "SUB", llRound(dmgMinRanged * dmgMult), llRound(dmgSpreadRanged * dmgMult), "0", //fix damage type later 
                     "NULL", 0, GetAtt("DEX"), GetAtt("LUK"), "NULL", //change if elemental
                     2, ["NORMAL", "NEGATIVE"], 

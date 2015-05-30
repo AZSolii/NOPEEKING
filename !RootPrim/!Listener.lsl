@@ -4,10 +4,29 @@ integer CHANNEL_MATERIA_BASE = -730000;
 integer CHANNEL_MAIN = -9823645;
 
 integer LINK_EFFECT = 101;
+integer LINK_PARTY = 102;
 integer LINK_STATUS_TO_HUB = 201;
 integer LINK_EVENT = 600;
 integer LINK_COMMAND_INPUT = 601;
 
+integer PartyChecksum = 0;
+
+list acceptedCharacters = [" ", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+                           "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+
+integer convertStringToChecksum(string s){
+    integer length = llStringLength(s);
+    integer checksum = 0;
+    integer i;
+    for(i=0; i<length; i++){
+        string parse = llToUpper(llGetSubString(s, i, i));
+        integer search = llListFindList(acceptedCharacters, [parse]);
+        integer add = 1 << search;
+        if(search > -1) checksum += add;
+    }
+    
+    return checksum;
+}
 default
 {
     state_entry()
@@ -26,7 +45,22 @@ default
             list parse = llParseString2List(llToUpper(message), [" "], [""]);
             string cmd = llList2String(parse, 0);
             
-            if(cmd == "BIND"){
+            if(cmd == "PARTY"){
+                integer i;
+                string arg1;
+                for(i=0; i<llGetListLength(parse); i++){
+                    arg1 += llToUpper(llList2String(parse, i+1)) + " ";
+                }
+                arg1 = llStringTrim(arg1, STRING_TRIM);
+                if(llStringLength(arg1) > 16)
+                    llOwnerSay("ERROR 013b: Party ID is too long. Please truncate to 16 or fewer characters.");
+                else {
+                    llOwnerSay("Party ID set to \""+arg1+"\"");
+                    PartyChecksum = convertStringToChecksum(arg1);
+                    llMessageLinked(LINK_SET, LINK_PARTY, (string)PartyChecksum, NULL_KEY);
+                }
+            } //TODO: Filter non-accepted characters out.
+            else if(cmd == "BIND"){
                 integer arg1 = llList2Integer(parse, 1);
                 string arg2 = llToUpper(llList2String(parse, 2));
                 string arg3 = llToUpper(llList2String(parse, 3));

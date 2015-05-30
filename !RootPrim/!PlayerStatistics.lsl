@@ -1,5 +1,6 @@
 integer LINK_STATISTICS = 100;
 integer LINK_EFFECT = 101;
+integer LINK_PARTY = 102;
 integer LINK_STATUS_AWAY_HUB = 200;
 integer LINK_STATUS_TO_HUB = 201;
 integer LINK_EVENT = 600;
@@ -31,7 +32,7 @@ list StatusTracker = ["NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
                       
 integer CHP;
 integer CMP;
-string MyParty = "00000";
+integer PartyChecksum = 0;
 list HP_Status_Events = [];
 
 //The big list of link message channels!
@@ -161,12 +162,17 @@ default
     }
     on_rez(integer param)
     {
+        CHP = GetAtt("MHP");
+        CMP = GetAtt("MMP");
         export();
     }
     link_message(integer sender, integer linknum, string str, key id)
     {
         if(linknum == LINK_STATUS_AWAY_HUB){
             StatusTracker = llCSV2List(str);
+        }
+        if(linknum == LINK_PARTY){
+            PartyChecksum = (integer)str;
         }
         if(linknum == LINK_EFFECT)
         {
@@ -175,7 +181,7 @@ default
             if(filter == llGetOwner() || filter == COMMON_KEY)
             {
                 integer index = 1;
-                string PartyID;
+                integer PartyID;
                 string HPModForm;
                 string MPModForm;
                 integer HPModMin = 0;
@@ -191,7 +197,7 @@ default
                 integer NumEffects;
                 list StatusEffects;
                 
-                PartyID = llList2String(parse, index);
+                PartyID = llList2Integer(parse, index);
                 index++;
                 HPModForm = llList2String(parse, index);
                 index++;
@@ -241,14 +247,22 @@ default
                 }
                 
                 integer doContinue = FALSE;
-                llSay(0,"DEBUG: PartyID=\""+PartyID+"\"");
                 //Party Check
-                if(PartyID == "00000" || llListFindList(Keywords, ["NEUTRAL"]) != -1) //Always hits everyone
+                if(PartyID == 0 || PartyChecksum == 0 || llListFindList(Keywords, ["NEUTRAL"]) != -1) //Always hits everyone
                     doContinue = TRUE;
-                else if(PartyID == MyParty && llListFindList(Keywords, ["POSITIVE"]) != -1) //If is positive effect & my party, continue
+                else if(PartyID == PartyChecksum && llListFindList(Keywords, ["POSITIVE"]) != -1) //If is positive effect & my party, continue
                     doContinue = TRUE;
-                else if(PartyID != MyParty && llListFindList(Keywords, ["NEGATIVE"]) != -1) //If is negative effect & not my party, continue
+                else if(PartyID != PartyChecksum && llListFindList(Keywords, ["NEGATIVE"]) != -1) //If is negative effect & not my party, continue
                     doContinue = TRUE;
+                    
+                integer hasRadius = llListFindList(Keywords, ["RADIUS"]);
+                float dist;
+                if(hasRadius > -1){
+                    vector tPos = (vector)llList2String(Keywords, hasRadius+2);
+                    vector mPos = llGetPos();
+                    dist = llVecDist(mPos, tPos);
+                }
+                if(dist > llList2Float(Keywords, hasRadius+1)) {doContinue = FALSE; llOwnerSay("DEBUG: Skipped due to distance check");}
                 
                 if(doContinue){
                     //Status Export
@@ -414,8 +428,6 @@ default
                         }
                     }
                 }
-                else if(DEBUG_TEXT_ON)
-                    llOwnerSay("DEBUG: Skipped due to party check.");
             }
         }
         debugText();

@@ -1,3 +1,4 @@
+integer LINK_PARTY = 102;
 integer LINK_STATUS_AWAY_HUB = 200;
 integer LINK_MATERIA_SLOT = 300;
 integer LINK_MATERIA_SUPPORT_TOGGLE = 302;
@@ -7,7 +8,7 @@ integer LINK_SCANNER_REQUEST = 400;
 integer LINK_TIMER_REQUEST = 500;
 integer CHANNEL_MAIN = -9823645;
 list Attributes;
-string Party = "00000";
+integer PartyChecksum = 0;
 key COMMON_KEY = "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
 float Reach = 2.0;
@@ -33,11 +34,23 @@ list Slots = ["Potato", "COMMAND", 1, FALSE, "NULL", 0, FALSE, "NULL", "", 0, FA
               
 list LinkGroup = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4];
 
-string formatAttack(integer FormatAsCSV, string party, string hpMod, integer hpMin, integer hpRange, string damageType, 
+string formatAttack(integer FormatAsCSV, integer party, string hpMod, integer hpMin, integer hpRange, string damageType, 
     string mpMod, integer mpChange, integer potency, integer luck, string vfx,
     integer numKeywords, list keywords, integer numEffects, list effects){
     list dump = [party, hpMod, hpMin, hpRange, damageType, mpMod, mpChange, 
-                 potency, luck, vfx, numKeywords, llList2CSV(keywords), numEffects, llList2CSV(effects)];
+                 potency, luck, vfx, numKeywords];
+    
+    if(FormatAsCSV)
+        dump += llList2CSV(keywords);
+    else
+        dump += llDumpList2String(keywords,";");
+    dump += numEffects;
+    
+    if(FormatAsCSV)
+        dump += llList2CSV(effects);
+    else
+        dump += llDumpList2String(effects,";");
+    
     if(FormatAsCSV)
         return llList2CSV(dump);
     else
@@ -71,12 +84,15 @@ default
     {
         
     }
-    link_message(integer linknum, integer num, string str, key id)
+    link_message(integer sender, integer linknum, string str, key id)
     {
-        if(num == LINK_STATUS_AWAY_HUB){
+        if(linknum == LINK_STATUS_AWAY_HUB){
             Attributes = llCSV2List(str);
         }
-        else if(num == LINK_MATERIA_USE){
+        if(linknum == LINK_PARTY){
+            PartyChecksum = (integer)str;
+        }
+        else if(linknum == LINK_MATERIA_USE){
             integer slot = (integer)str - 1;
             string name = llList2String(Slots,slot*3);
             string type = llList2String(Slots,slot*3+1);
@@ -87,7 +103,7 @@ default
             if(type == "COMMAND" && coolCommand){
                 llSay(0,llKey2Name(llGetOwner())+" unleashes "+name+" Lv"+(string)lv+"!");
                 if(name == "Potato"){
-                    string output = formatAttack(FALSE, Party, "SUB", 10, 1990, "F", 
+                    string output = formatAttack(FALSE, PartyChecksum, "SUB", 10, 1990, "F", 
                     "SUB", 0, (GetAtt("SPR")+GetAtt("VIT")/2), GetAtt("LUK"), "NULL",
                     2, ["COMMAND", "NEGATIVE"], 1, ["FEAR", 1, 0]);
                     llSay(CHANNEL_MAIN, (string)COMMON_KEY+";"+output);
@@ -95,8 +111,11 @@ default
                 }
                 coolCommand = FALSE;
             }
+            if(type == "MAGIC" && coolMagic){
+                
+            }
         }
-        else if(num == LINK_MATERIA_COOLDOWN){
+        else if(linknum == LINK_MATERIA_COOLDOWN){
             list parse = llParseString2List(str, [";"], []);
             string arg01 = llList2String(parse, 0);
             string arg02 = llList2String(parse, 1);
@@ -104,7 +123,7 @@ default
             if(arg01 == "MAGIC")   coolMagic   = (integer)arg02;
             if(arg01 == "SUMMON")  coolSummon  = (integer)arg02;
         }
-        else if(num == LINK_MATERIA_SUPPORT_TOGGLE){
+        else if(linknum == LINK_MATERIA_SUPPORT_TOGGLE){
             integer group = (integer)llFloor((float)str / 2.0);
             integer slot = 6 * group;
             integer val = llList2Integer(Slots, slot+2);

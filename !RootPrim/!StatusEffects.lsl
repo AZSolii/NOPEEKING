@@ -90,15 +90,16 @@ decrementStack(integer i, string filter){
 }
 default
 {
+    on_rez(integer param){
+        StatusTrackerS  = ["NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
+                           "NULL", 0, "NULL", 0, "NULL", 0, "NULL", 0,
+                           "NULL", 0, "NULL", 0];
+        StatusTrackerD  = [];
+        export();
+    }
     state_entry()
     {
-        //llOwnerSay("====BEGIN====");
-        //llSetText("",<0,0,0>,0);
-        //setStackStatus("Bravery",4);
-        //setStackStatus("Protect",3);
-        //setStackStatus("Fog",6);
-        //setStackStatus("Blink",9);
-        //debugText();
+        export();
     }
     //Status;stacksorduration;
     link_message(integer linknum, integer num, string str, key id){
